@@ -2,8 +2,8 @@ module Main where
 
 import System.Environment
 import PingParser
-import Data.Maybe
 import Data.List
+import Numeric
 
 getFileName :: [String] -> String
 getFileName [] = "./googlePing.dat"
@@ -13,7 +13,10 @@ getFileName (file:_) = file
 -- analysePings [] = ""
 
 meanTime :: [Ping] -> Float
-meanTime pings = let (total, count) = (foldl' (\(total, count) ping -> (total + time ping, count +1)) (0, 0) pings)
+meanTime pings = let
+  folder (total', c) Ping {time=time'} = (total' + time', c + 1)
+  (total, count) = foldl' folder (0, 0) pings
+-- meanTime pings = let (total, count) = (foldl' (\(total, count) ping -> (total + time ping, count +1)) (0, 0) pings)
   in total/count
 
 countDropped :: [Ping] -> Int
@@ -29,7 +32,8 @@ printDropped :: [Ping] -> String
 printDropped pings = let
   count = countDropped pings
   total = length pings
-  in (show count) ++ "/" ++ (show total) ++ " dropped ping."
+  percent = showGFloat (Just 0) (100 * (fromIntegral count :: Float) / (fromIntegral total ::Float )) ""
+  in (show count) ++ "/" ++ (show total) ++ " (" ++ percent ++ "%) dropped ping."
 
 main :: IO ()
 main = do
