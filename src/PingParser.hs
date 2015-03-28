@@ -1,4 +1,4 @@
-module PingParser (parsePingFile, Ping) where
+module PingParser where
 
 import Text.ParserCombinators.Parsec
 import Text.Parsec.Char (endOfLine)
@@ -6,6 +6,9 @@ import Numeric (readFloat)
 import Control.Applicative (empty, (<$), (<$>), (<*>), (<*))
 import Data.Char (digitToInt)
 import Data.List (foldl')
+import Data.Maybe (catMaybes)
+
+data Ping = Ping {icmpSeq :: Int, time :: Float} deriving (Show)
 
 -- utils to parse int and float
 positiveFloat :: CharParser () Float
@@ -18,8 +21,6 @@ positiveFloat = do
 positiveNatural :: CharParser () Int
 positiveNatural =
   foldl' (\a i -> a * 10 + digitToInt i) 0 <$> many1 digit
-
-data Ping = Ping {icmpSeq :: Int, time :: Float} deriving (Show)
 
 pingLine :: CharParser () (Maybe Ping)
 pingLine = pingHeader <|> (host >> pingData)
@@ -55,5 +56,7 @@ pair parser = (many (noneOf "=")) >> (char '=') >> parser
 pingFile :: CharParser () [Maybe Ping]
 pingFile = sepEndBy pingLine endOfLine
 
-parsePingFile :: String -> Either ParseError [Maybe Ping]
-parsePingFile input = parse pingFile "(unknown)" input
+parsePingFile :: String -> Either ParseError [Ping]
+parsePingFile input = case parse pingFile "(unknown)" input of
+  Left err -> Left err
+  Right pings -> Right $ catMaybes pings
