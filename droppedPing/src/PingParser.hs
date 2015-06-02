@@ -14,7 +14,7 @@ data Ping = Ping {icmpSeq :: Int, time :: Float} deriving (Show)
 positiveFloat :: CharParser () Float
 positiveFloat = do
   s <- getInput
-  case (readFloat s) of
+  case readFloat s of
     [(n, s')] -> n <$ setInput s'
     _         -> empty
 
@@ -26,7 +26,7 @@ pingLine :: CharParser () (Maybe Ping)
 pingLine = pingHeader <|> (host >> pingData)
 
 pingHeader :: CharParser () (Maybe Ping)
-pingHeader = (string "PING" >> (many $ noneOf "\n")) >> return Nothing
+pingHeader = string "PING" >> many (noneOf "\n") >> return Nothing
 
 host :: CharParser () String
 host = many (noneOf ":") <* char ':' <* spaces
@@ -51,7 +51,7 @@ pingData = Just <$> (
 
 
 pair :: CharParser () a -> CharParser () a
-pair parser = (many (noneOf "=")) >> (char '=') >> parser
+pair parser = many (noneOf "=") >> char '=' >> parser
 
 pingFile :: CharParser () [Maybe Ping]
 pingFile = sepEndBy pingLine endOfLine

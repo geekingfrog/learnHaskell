@@ -33,7 +33,7 @@ printDropped pings = let
   count = countDropped pings
   total = length pings
   percent = showGFloat (Just 0) (100 * (fromIntegral count :: Float) / (fromIntegral total ::Float )) ""
-  in (show count) ++ "/" ++ (show total) ++ " (" ++ percent ++ "%) dropped ping."
+  in show count ++ "/" ++ show total ++ " (" ++ percent ++ "%) dropped ping."
 
 main :: IO ()
 main = do
@@ -43,5 +43,5 @@ main = do
   rawPingData <- readFile filePath
   let pings = parsePingFile rawPingData
   case pings of
-    Left err -> putStrLn $ show err
+    Left err -> print err
     Right stuff -> putStrLn $ printDropped stuff
